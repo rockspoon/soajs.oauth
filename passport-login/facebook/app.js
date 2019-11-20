@@ -11,7 +11,8 @@ passport.use(new Strategy({
     callbackURL: config.credentials.callbackURL
   },
   function(accessToken, refreshToken, profile, cb) {
-    return cb(null, profile);
+	  console.log(accessToken, refreshToken, profile);
+	  return cb(null, profile);
   }));
 
 

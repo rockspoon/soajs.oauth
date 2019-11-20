@@ -1,76 +1,68 @@
 'use strict';
 
 const express = require('express');
-const bodyParser = require('body-parser');
-const cookieParser = require('cookie-parser');
-const session = require('cookie-session');
 const passport = require('passport');
 const GitHubStrategy = require('passport-github').Strategy;
 
-let bodyParserJSON = bodyParser.json();
-let bodyParserURLEncoded = bodyParser.urlencoded({extended: true});
-
 let app = express();
-
-let props = require('./config/props');
 let config = require('./config/config');
-let db = require('./config/database');
-
-db();
-
-app.use(bodyParserJSON);
-app.use(bodyParserURLEncoded);
-app.use(cookieParser('a secret'));
-app.use(session({secret: 'secret session'}));
-
-app.use(function (req, res, next) {
-	res.setHeader("Access-Control-Allow-Origin", "*");
-	res.setHeader("Access-Control-Allow-Credentials", "true");
-	res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-	res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Origin,Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers,Authorization");
-	next();
-});
-
-app.use(passport.initialize()); // Starts passport
-app.use(passport.session()); // Provides session support
 
 passport.use(new GitHubStrategy({
 		clientID: config.credentials.clientID,
 		clientSecret: config.credentials.clientSecret,
 		callbackURL: config.credentials.callbackURL
 	},
-	function (accessToken, refreshToken, profile) {
-	//save user in db
+	function (accessToken, refreshToken, profile, cb) {
+		//save user in db
 		console.log(accessToken, refreshToken, profile);
+		return cb(null, profile);
 	}
 ));
 
-app.get('/', function (req, res) {
-	res.redirect('/login');
+passport.serializeUser(function(user, cb) {
+	cb(null, user);
 });
 
-app.get('/login', function (req, res) {
-	console.log(req.cookies);
-	
-	res.cookie('acookie', 'this is a cookie');
-	
-	res.send('\
-<head>\
-  <title>test</title>\
-</head>\
-<body>\
-  <a href="./auth">Login</a>\
-</body>\
-');
+passport.deserializeUser(function(obj, cb) {
+	cb(null, obj);
 });
 
-app.get('/auth', passport.authenticate('github'));
+app.set('views', __dirname + '/views');
+app.set('view engine', 'ejs');
 
-app.get('/account', passport.authenticate('github', {failureRedirect: '/login'}), function (req, res) {
-	// Successful authentication, redirect home.
-	res.redirect('/');
-});
+app.use(require('morgan')('combined'));
+app.use(require('cookie-parser')());
+app.use(require('body-parser').urlencoded({ extended: true }));
+app.use(require('express-session')({ secret: 'keyboard cat', resave: true, saveUninitialized: true }));
 
-app.listen(props.PORT, (req, res) => {
-	console.log(`Server is running on ${props.PORT} port.`);
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.get('/',
+	function(req, res) {
+		res.render('home', { user: req.user });
+	});
+
+app.get('/login',
+	function(req, res){
+		res.render('login');
+	});
+
+app.get('/login/github',
+	passport.authenticate('github', {scope: ['profile']}));
+
+app.get('/return',
+	passport.authenticate('github', { failureRedirect: '/login' }),
+	function(req, res) {
+		res.redirect('/');
+	});
+
+app.get('/profile',
+	require('connect-ensure-login').ensureLoggedIn(),
+	function(req, res){
+		res.render('profile', { user: req.user });
+	});
+
+app.listen(process.env['PORT'] || 8080, (req, res) => {
+	console.log(`Console running on port ${process.env['PORT'] || 8080}`)
 });
