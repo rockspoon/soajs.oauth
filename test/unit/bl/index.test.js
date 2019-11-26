@@ -482,7 +482,6 @@ describe("Unit test for: BL - oauth", () => {
 		stubDriver = sinon.stub(uracDriver, 'passportLibInit').yields(null, null);
 		
 		BL.passportLogin(req, null, null, (err) => {
-			console.log(err, 'erora')
 			assert.ok(err);
 			done();
 		});
