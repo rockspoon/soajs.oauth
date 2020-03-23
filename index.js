@@ -1,4 +1,5 @@
 'use strict';
+require('newrelic');
 
 /**
  * @license
@@ -25,13 +26,13 @@ service.init(() => {
 		if (error) {
 			throw new Error('Failed starting service');
 		}
-		
+
 		if (!service.oauth) {
 			let reg = service.registry.get();
 			let oauthOptions = {
 				model: provision.oauthModel
 			};
-			
+
 			//grants check
 			if (reg.serviceConfig && reg.serviceConfig.oauth && reg.serviceConfig.oauth.grants) {
 				oauthOptions.grants = reg.serviceConfig.oauth.grants;
@@ -39,7 +40,7 @@ service.init(() => {
 				service.log.debug("Unable to find grants entry in registry, defaulting to", config.oauthServer.grants);
 				oauthOptions.grants = config.oauthServer.grants;
 			}
-			
+
 			//debug check
 			if (reg.serviceConfig && reg.serviceConfig.oauth && reg.serviceConfig.oauth.debug) {
 				oauthOptions.debug = reg.serviceConfig.oauth.debug;
@@ -47,7 +48,7 @@ service.init(() => {
 				service.log.debug("Unable to find debug entry in registry, defaulting to", config.oauthServer.debug);
 				oauthOptions.debug = config.oauthServer.debug;
 			}
-			
+
 			//accessTokenLifetime check
 			if (reg.serviceConfig && reg.serviceConfig.oauth && reg.serviceConfig.oauth.accessTokenLifetime) {
 				oauthOptions.accessTokenLifetime = reg.serviceConfig.oauth.accessTokenLifetime;
@@ -55,7 +56,7 @@ service.init(() => {
 				service.log.debug("Unable to find accessTokenLifetime entry in registry, defaulting to", config.oauthServer.accessTokenLifetime);
 				oauthOptions.accessTokenLifetime = config.oauthServer.accessTokenLifetime;
 			}
-			
+
 			//refreshTokenLifetime check
 			if (reg.serviceConfig && reg.serviceConfig.oauth && reg.serviceConfig.oauth.refreshTokenLifetime) {
 				oauthOptions.refreshTokenLifetime = reg.serviceConfig.oauth.refreshTokenLifetime;
@@ -64,7 +65,7 @@ service.init(() => {
 				oauthOptions.refreshTokenLifetime = config.oauthServer.refreshTokenLifetime;
 			}
 			service.oauth = oauthserver(oauthOptions);
-			
+
 			let dbConfig = reg.coreDB.provision;
 			if (reg.coreDB.oauth) {
 				dbConfig = {
@@ -86,26 +87,26 @@ service.init(() => {
 				});
 			});
 		}
-		
+
 		service.get('/roaming', (req, res) => {
 			if (req.soajs.servicesConfig.oauth &&
 				req.soajs.servicesConfig.oauth.roaming &&
 				req.soajs.servicesConfig.oauth.roaming.whitelistips &&
 				Array.isArray(req.soajs.servicesConfig.oauth.roaming.whitelistips)) {
-				
+
 				let clientIp = req.getClientIP();
 				let whitelistips = req.soajs.servicesConfig.oauth.roaming.whitelistips;
-				
+
 				if (whitelistips.includes(clientIp)) {
 					let inject = req.headers.soajsinjectobj;
 					res.set('soajsinjectobj', inject);
 					return res.json(req.soajs.buildResponse(null, true));
 				}
 			}
-			let error = {code: 404, msg: config.errors[404]};
+			let error = { code: 404, msg: config.errors[404] };
 			return res.json(req.soajs.buildResponse(error, null));
 		});
-		
+
 		service.get('/available/login', (req, res) => {
 			let data = {
 				"thirdparty": [],
@@ -141,39 +142,39 @@ service.init(() => {
 			} else {
 				return res.json(req.soajs.buildResponse(null, data));
 			}
-			
+
 		});
-		
+
 		service.get('/passport/login/:strategy', (req, res) => {
 			bl.passportLogin(req, res, null, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.get('/passport/validate/:strategy', (req, res) => {
-			bl.passportValidate(req, res, {"provision": provision}, (error, data) => {
+			bl.passportValidate(req, res, { "provision": provision }, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.post('/openam/login', (req, res) => {
-			bl.openam(req, req.soajs.inputmaskData, {"provision": provision}, (error, data) => {
+			bl.openam(req, req.soajs.inputmaskData, { "provision": provision }, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.post('/ldap/login', (req, res) => {
-			bl.ldap(req, req.soajs.inputmaskData, {"provision": provision}, (error, data) => {
+			bl.ldap(req, req.soajs.inputmaskData, { "provision": provision }, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.get("/authorization", (req, res) => {
-			bl.authorization(req.soajs, req.soajs.inputmaskData, {"provision": provision}, (error, data) => {
+			bl.authorization(req.soajs, req.soajs.inputmaskData, { "provision": provision }, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.post("/token", (req, res, next) => {
 			let allowed = true;
 			if (req.soajs.servicesConfig.oauth && req.soajs.servicesConfig.oauth.local) {
@@ -189,20 +190,20 @@ service.init(() => {
 			}
 			if (!allowed) {
 				let errCode = 414;
-				return res.json(req.soajs.buildResponse({"code": errCode, "msg": config.errors[errCode]}, null));
+				return res.json(req.soajs.buildResponse({ "code": errCode, "msg": config.errors[errCode] }, null));
 			}
-			
+
 			//rewrite headers content-type so that oauth.grant works
 			req.headers['content-type'] = 'application/x-www-form-urlencoded';
-			
+
 			service.oauth.model.getUser = (username, password, callback) => {
-				bl.getUserRecord(req.soajs, req.soajs.inputmaskData, {"provision": provision}, (error, record) => {
+				bl.getUserRecord(req.soajs, req.soajs.inputmaskData, { "provision": provision }, (error, record) => {
 					return callback(error, record);
 				});
 			};
-			
+
 			if (!req.headers.authorization) {
-				bl.authorization(req.soajs, req.soajs.inputmaskData, {"provision": provision}, (error, data) => {
+				bl.authorization(req.soajs, req.soajs.inputmaskData, { "provision": provision }, (error, data) => {
 					if (error) {
 						return res.json(req.soajs.buildResponse(error, data));
 					} else {
@@ -214,11 +215,11 @@ service.init(() => {
 				next();
 			}
 		}, service.oauth.grant());
-		
+
 		service.post("/pin", (req, res, next) => {
 			//rewrite headers content-type so that oauth.grant works
 			req.headers['content-type'] = 'application/x-www-form-urlencoded';
-			
+
 			// we should set password and username for oauth to work
 			// we should also remove access_token since the request passed the gateway
 			// we should add authorization to be able to generate a new access token
@@ -230,12 +231,12 @@ service.init(() => {
 				delete req.query.access_token;
 			}
 			service.oauth.model.getUser = (username, password, callback) => {
-				bl.getUserRecordByPin(req.soajs, req.soajs.inputmaskData, {"provision": provision}, (error, record) => {
+				bl.getUserRecordByPin(req.soajs, req.soajs.inputmaskData, { "provision": provision }, (error, record) => {
 					return callback(error, record);
 				});
 			};
-			
-			bl.authorization(req.soajs, req.soajs.inputmaskData, {"provision": provision}, (error, data) => {
+
+			bl.authorization(req.soajs, req.soajs.inputmaskData, { "provision": provision }, (error, data) => {
 				if (error) {
 					return res.json(req.soajs.buildResponse(error, data));
 				} else {
@@ -244,31 +245,31 @@ service.init(() => {
 				}
 			});
 		}, service.oauth.grant());
-		
+
 		service.delete("/accessToken/:token", (req, res) => {
 			bl.oauth_token.deleteAccessToken(req.soajs, req.soajs.inputmaskData, null, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.delete("/refreshToken/:token", (req, res) => {
 			bl.oauth_token.deleteRefreshToken(req.soajs, req.soajs.inputmaskData, null, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.delete("/tokens/user/:userId", (req, res) => {
-			bl.oauth_token.deleteAllUserTokens(req.soajs, req.soajs.inputmaskData, {"provision": provision}, (error, data) => {
+			bl.oauth_token.deleteAllUserTokens(req.soajs, req.soajs.inputmaskData, { "provision": provision }, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.delete("/tokens/tenant/:clientId", (req, res) => {
 			bl.oauth_token.deleteAllClientTokens(req.soajs, req.soajs.inputmaskData, null, (error, data) => {
 				return res.json(req.soajs.buildResponse(error, data));
 			});
 		});
-		
+
 		service.start();
 	});
 });
