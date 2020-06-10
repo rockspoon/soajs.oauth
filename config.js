@@ -9,14 +9,16 @@
  */
 
 module.exports = {
-	type: 'service',
-	prerequisites: {
-		cpu: '',
-		memory: ''
+	"type": 'service',
+	'subType': 'soajs',
+	"description": "SOAJS oAuth provides out of the box oAuth 2.0 functionality to validate, refresh and kill generated access tokens without the effort of writing any code.",
+		"prerequisites": {
+		"cpu": '',
+		"memory": ''
 	},
 	"serviceVersion": 1,
 	"serviceName": "oauth",
-	"serviceGroup": "SOAJS Core Services",
+	"serviceGroup": "Gateway",
 	"servicePort": 4002,
 	"requestTimeout": 30,
 	"requestTimeoutRenewal": 5,
@@ -24,22 +26,23 @@ module.exports = {
 	"oauth": true,
 	'awareness': false,
 	"maintenance": {
+		"readiness": "/heartbeat",
+		"port": {"type": "maintenance"},
 		"commands": [
-			{"label": "Releoad Provision", "path": "/loadProvision", "icon": "provision"}
+			{"label": "Reload Provision", "path": "/loadProvision", "icon": "fas fa-download"},
+			{"label": "Reload Registry", "path": "/reloadRegistry", "icon": "fas fa-undo"},
+			{"label": "Resource Info", "path": "/resourceInfo", "icon": "fas fa-info"}
 		]
 	},
 	
-	"hashIterations": 1024,
-	"seedLength": 32,
-	
+	//-------------------------------------
+	"hashIterations": 12,
 	"loginMode": "oauth",
-	
 	"oauthService": {
 		"name": "oauth",
 		"tokenApi": "/token",
 		"authorizationApi": "/authorization"
 	},
-	
 	"oauthServer": {
 		"grants": [
 			"password",

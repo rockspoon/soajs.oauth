@@ -4,25 +4,29 @@ let helper = require("../helper.js");
 
 describe("starting OAUTH integration tests", () => {
 	
-	let oauth, controller;
+	let controller, service;
 	
 	before((done) => {
 		let rootPath = process.cwd();
-		imported(rootPath + "/test/data/soajs_profile.js", rootPath + "/test/data/integration/", (err, msg) => {
+		process.env.SOAJS_IMPORTER_DROPDB = true;
+		imported.runPath(rootPath + "/test/data/soajs_profile.js", rootPath + "/test/data/integration/", true, null, (err, msg) => {
 			if (err) {
 				console.log(err);
 			}
 			if (msg) {
 				console.log(msg);
 			}
-			console.log("Starting Controller and OAUTH service");
-			controller = require("soajs.controller");
-			setTimeout(function () {
-				oauth = helper.requireModule('./index');
-				setTimeout(function () {
-					done();
-				}, 5000);
-			}, 1000);
+			console.log("Starting Controller ...");
+			controller = require("soajs.controller/_index.js");
+			controller.runService(() => {
+				console.log("Starting OAUTH ...");
+				service = helper.requireModule('./_index.js');
+				service.runService(() => {
+					setTimeout(function () {
+						done();
+					}, 5000);
+				});
+			});
 		});
 	});
 	

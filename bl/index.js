@@ -30,7 +30,11 @@ let bl = {
 	oauth_urac: null,
 	oauth_token: null,
 	
-	"passportLogin": (req, res, options, cb) => {
+	"passportLogin": (req, res, options, cb, next) => {
+		//Twitter require session, if session is off mimic it here
+		if (!req.session && req.soajs.inputmaskData.strategy === "twitter") {
+			req.session = {};
+		}
 		passport.init(req.soajs, (error, _passport) => {
 			if (error) {
 				return cb(error, null);
@@ -39,11 +43,15 @@ let bl = {
 				if (error) {
 					return cb(error, null);
 				}
-			});
+			}, next);
 		});
 	},
 	
 	"passportValidate": (req, res, options, cb) => {
+		//Twitter require session, if session is off mimic it here
+		if (!req.session && req.soajs.inputmaskData.strategy === "twitter") {
+			req.session = {};
+		}
 		passport.init(req.soajs, (error, _passport) => {
 			if (error) {
 				return cb(error, null);
@@ -303,6 +311,9 @@ function thirdpartySaveAndGrantAccess(req, input, options, cb) {
 		if (config.groups && Array.isArray(config.groups)) {
 			input.user.groups = config.groups;
 		}
+	}
+	if (input && input.user && input.user.email) {
+		input.user.email = input.user.email.toLowerCase();
 	}
 	uracDriver.saveUser(req.soajs, input, (error, user) => {
 		if (error) {
