@@ -17,9 +17,9 @@ module.exports = {
 		"memory": ''
 	},
 	"serviceVersion": 1,
-	"serviceName": "oauth",
-	"serviceGroup": "Gateway",
-	"servicePort": 4002,
+	"serviceName": "rsoauth",
+	"serviceGroup": "SOAJS Gateway",
+	"servicePort": 4071,
 	"requestTimeout": 30,
 	"requestTimeoutRenewal": 5,
 	"extKeyRequired": true,
