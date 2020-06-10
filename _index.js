@@ -8,6 +8,8 @@
  * found in the LICENSE file at the root of this repository
  */
 
+require('newrelic')
+
 const soajs = require('soajs');
 
 let config = require('./config.js');

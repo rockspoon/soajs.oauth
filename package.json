@@ -44,7 +44,7 @@
     "passport-github2": "0.1.11",
     "passport-google-oauth20": "2.0.0",
     "passport-twitter": "1.0.4",
-    "soajs": "github:rockspoon/soajs#5af57edcdb3ccc877de8939e7c45abbb538af07f",
+    "soajs": "github:rockspoon/soajs#7ece472fd91d1bd8d2f2ea075112a7f95999ca29",
     "soajs.urac.driver": "3.0.4"
   }
 }
