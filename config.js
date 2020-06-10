@@ -18,7 +18,7 @@ module.exports = {
 	},
 	"serviceVersion": 1,
 	"serviceName": "rsoauth",
-	"serviceGroup": "SOAJS Gateway",
+	"serviceGroup": "SOAJS Core Services",
 	"servicePort": 4071,
 	"requestTimeout": 30,
 	"requestTimeoutRenewal": 5,
