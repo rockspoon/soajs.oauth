@@ -34,8 +34,10 @@
     "sinon": "7.5.0"
   },
   "dependencies": {
+    "@newrelic/native-metrics": "^5.2.0",
     "activedirectory": "0.7.2",
     "jsonwebtoken": "8.5.1",
+    "newrelic": "^6.9.0",
     "oauth2-server": "2.4.1",
     "passport": "0.4.1",
     "passport-azure-ad": "4.2.1",
