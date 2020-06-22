@@ -124,6 +124,7 @@ service.init(() => {
 						data.local.available = true;
 					}
 				}
+				console.log(req.soajs);
 				if (req.soajs.servicesConfig.oauth.passportLogin) {
 					let passportLogin = req.soajs.servicesConfig.oauth.passportLogin;
 					for (let strategy in passportLogin) {
