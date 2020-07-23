@@ -38,12 +38,12 @@ function Oauth(service, options, mongoCore) {
       __self.mongoCore = new Mongo(registry.coreDB.provision);
     }
 
-    __self.mongoCore.connect(__self, (err) => {
-      console.log('connect to mongo result');
-      console.log(err);
-      console.log(JSON.stringify(__self.mongoCore));
-      __self.closeConnection();
-    });
+    // __self.mongoCore.connect(__self, (err) => {
+    //   console.log('connect to mongo result');
+    //   console.log(err);
+    //   console.log(JSON.stringify(__self.mongoCore));
+    //   __self.closeConnection();
+    // });
 
     let index = 'default';
     if (options && options.index) {
