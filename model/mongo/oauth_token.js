@@ -28,6 +28,7 @@ function Oauth(service, options, mongoCore) {
     } else if (options && options.dbConfig) {
       __self.mongoCore = new Mongo(options.dbConfig);
     } else {
+      console.log(JSON.stringify(registry.coreDB.provision));
       __self.mongoCore = new Mongo(registry.coreDB.provision);
     }
 
