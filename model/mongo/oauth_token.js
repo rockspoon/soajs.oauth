@@ -24,10 +24,15 @@ function Oauth(service, options, mongoCore) {
     let registry = service.registry.get();
     //NOTE: this collection can scale out and exist in the env cluster
     if (registry.coreDB.oauth) {
+      console.log('registry.coreDB.oauth');
+      console.log(JSON.stringify(registry.coreDB.oauth));
       __self.mongoCore = new Mongo(registry.coreDB.oauth);
     } else if (options && options.dbConfig) {
+      console.log('options.dbConfig');
+      console.log(JSON.stringify(options.dbConfig));
       __self.mongoCore = new Mongo(options.dbConfig);
     } else {
+      console.log('registry.coreDB.provision');
       console.log(JSON.stringify(registry.coreDB.provision));
       __self.mongoCore = new Mongo(registry.coreDB.provision);
     }
