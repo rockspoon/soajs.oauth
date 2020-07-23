@@ -9,310 +9,311 @@
  */
 
 module.exports = {
-	type: 'service',
-	prerequisites: {
-		cpu: '',
-		memory: ''
-	},
-	"serviceVersion": 1,
-	"serviceName": "rsoauth",
-	"serviceGroup": "SOAJS Core Services",
-	"servicePort": 4071,
-	"requestTimeout": 30,
-	"requestTimeoutRenewal": 5,
-	"extKeyRequired": true,
-	"oauth": true,
-	'awareness': false,
-	"maintenance": {
-		"commands": [
-			{ "label": "Releoad Provision", "path": "/loadProvision", "icon": "provision" }
-		]
-	},
+  type: 'service',
+  prerequisites: {
+    cpu: '',
+    memory: '',
+  },
+  serviceVersion: 1,
+  serviceName: 'rsoauth',
+  serviceGroup: 'SOAJS Core Services',
+  servicePort: 4071,
+  requestTimeout: 30,
+  requestTimeoutRenewal: 5,
+  extKeyRequired: true,
+  oauth: true,
+  awareness: false,
+  maintenance: {
+    readiness: '/heartbeat',
+    port: {type: 'maintenance'},
+    commands: [
+      {
+        label: 'Reload Provision',
+        path: '/loadProvision',
+        icon: 'fas fa-download',
+      },
+      {label: 'Reload Registry', path: '/reloadRegistry', icon: 'fas fa-undo'},
+      {label: 'Resource Info', path: '/resourceInfo', icon: 'fas fa-info'},
+    ],
+  },
 
-	"hashIterations": 1024,
-	"seedLength": 32,
+  //-------------------------------------
+  hashIterations: 12,
+  loginMode: 'oauth',
+  oauthService: {
+    name: 'oauth',
+    tokenApi: '/token',
+    authorizationApi: '/authorization',
+  },
+  oauthServer: {
+    grants: ['password', 'refresh_token'],
+    debug: false,
+    accessTokenLifetime: 7200,
+    refreshTokenLifetime: 1209600,
+  },
 
-	"loginMode": "oauth",
+  errors: {
+    400: 'Business logic required data are missing.',
+    401: 'Unable to log in the user. User not found.',
+    403: 'User does not have access to this tenant',
+    404: 'Unable to roam the provided request',
+    406: 'Missing Tenant secret',
 
-	"oauthService": {
-		"name": "oauth",
-		"tokenApi": "/token",
-		"authorizationApi": "/authorization"
-	},
+    411: 'Third party integration mapProfile error',
+    412: 'Third party integration profile is empty',
 
-	"oauthServer": {
-		"grants": [
-			"password",
-			"refresh_token"
-		],
-		"debug": false,
-		"accessTokenLifetime": 7200,
-		"refreshTokenLifetime": 1209600
-	},
+    413: 'Problem with the provided password.',
+    414: 'Local login is not allowed',
 
-	"errors": {
-		400: "Business logic required data are missing.",
-		401: "Unable to log in the user. User not found.",
-		403: "User does not have access to this tenant",
-		404: "Unable to roam the provided request",
-		406: "Missing Tenant secret",
+    420: 'Missing service key configuration for third party integration',
+    421: 'Service key configuration for third party integration is not complete',
+    422: 'Unable to get driver: ',
+    423: 'Error getting driver configuration',
 
-		411: "Third party integration mapProfile error",
-		412: "Third party integration profile is empty",
+    450: 'You do not have privileges to enable pin login',
+    451: 'Pin login is not available for this account',
 
-		413: "Problem with the provided password.",
-		414: "Local login is not allowed",
+    600: 'Error in generating oAUth Token.',
+    601: 'Model not found.',
+    602: 'Model error: ',
 
-		420: "Missing service key configuration for third party integration",
-		421: "Service key configuration for third party integration is not complete",
-		422: "Unable to get driver: ",
-		423: "Error getting driver configuration",
+    700: 'Unable to log in. Ldap connection refused!',
+    701: 'Unable to log in. Invalid ldap admin user.',
+    702: 'Unable to log in. Invalid ldap admin credentials.',
+    703: 'Unable to log in. Invalid ldap user credentials.',
+    704: 'Unable to log in. Ldap user not found.',
+    705: 'Unable to log in. Authentication failed.',
 
-		450: "You do not have privileges to enable pin login",
-		451: "Pin login is not available for this account",
+    710: 'Unable to log in. OpenAM connection error.',
+    711: 'Unable to log in. OpenAM token invalid.',
+    713: 'Unable to log in. General error while parsing response',
 
-		600: "Error in generating oAUth Token.",
-		601: "Model not found.",
-		602: "Model error: ",
+    720: 'Unable to authenticated with third party',
+  },
+  schema: {
+    commonFields: {},
 
-		700: "Unable to log in. Ldap connection refused!",
-		701: "Unable to log in. Invalid ldap admin user.",
-		702: "Unable to log in. Invalid ldap admin credentials.",
-		703: "Unable to log in. Invalid ldap user credentials.",
-		704: "Unable to log in. Ldap user not found.",
-		705: "Unable to log in. Authentication failed.",
+    get: {
+      '/roaming': {
+        _apiInfo: {
+          l: 'Cross environment roaming, but requires IP whitelisting',
+          group: 'Tokenization user',
+        },
+      },
 
-		710: "Unable to log in. OpenAM connection error.",
-		711: "Unable to log in. OpenAM token invalid.",
-		713: "Unable to log in. General error while parsing response",
+      '/available/login': {
+        _apiInfo: {
+          l: 'Get information about what third party login is available',
+          group: 'Guest',
+        },
+      },
 
-		720: "Unable to authenticated with third party"
-	},
-	"schema": {
-		"commonFields": {},
+      '/authorization': {
+        _apiInfo: {
+          l: 'Get the authorization token',
+          group: 'Guest',
+        },
+      },
 
-		"get": {
-			"/roaming": {
-				"_apiInfo": {
-					"l": "Cross environment roaming, but requires IP whitelisting",
-					"group": "Tokenization user"
-				}
-			},
+      '/passport/login/:strategy': {
+        _apiInfo: {
+          l: 'Passport login',
+          group: 'Third party login',
+        },
+        strategy: {
+          source: ['params.strategy'],
+          required: true,
+          validation: {
+            type: 'string',
+            enum: ['facebook', 'google', 'twitter', 'github', 'azure'],
+          },
+        },
+      },
 
-			"/available/login": {
-				"_apiInfo": {
-					"l": "Get information about what third party login is available",
-					"group": "Guest"
-				}
-			},
+      '/passport/validate/:strategy': {
+        _apiInfo: {
+          l: 'Passport login validation',
+          group: 'Third party login',
+        },
+        strategy: {
+          source: ['params.strategy'],
+          required: true,
+          validation: {
+            type: 'string',
+            enum: ['facebook', 'google', 'twitter', 'github', 'azure'],
+          },
+        },
+        oauth_token: {
+          source: ['query.oauth_token'],
+          required: false,
+          validation: {
+            type: 'string',
+          },
+        },
+        oauth_verifier: {
+          source: ['query.oauth_verifier'],
+          required: false,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+    },
 
-			"/authorization": {
-				"_apiInfo": {
-					"l": "Get the authorization token",
-					"group": "Guest"
-				}
-			},
+    post: {
+      '/openam/login': {
+        _apiInfo: {
+          l: 'OpenAM login',
+          group: 'Third party login',
+        },
+        token: {
+          source: ['body.token'],
+          required: true,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+      '/ldap/login': {
+        _apiInfo: {
+          l: 'Ldap login',
+          group: 'Third party login',
+        },
+        username: {
+          source: ['body.username'],
+          required: true,
+          validation: {
+            type: 'string',
+          },
+        },
+        password: {
+          source: ['body.password'],
+          required: true,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
 
-			"/passport/login/:strategy": {
-				"_apiInfo": {
-					"l": "Passport login",
-					"group": "Third party login"
-				},
-				"strategy": {
-					"source": ['params.strategy'],
-					"required": true,
-					"validation": {
-						"type": "string",
-						"enum": ["facebook", "google", "twitter", "github", "azure"]
-					}
-				}
-			},
+      '/token': {
+        _apiInfo: {
+          l: 'Create an access token',
+          group: 'Guest',
+        },
+        username: {
+          source: ['body.username'],
+          required: false,
+          validation: {
+            type: 'string',
+          },
+        },
+        password: {
+          source: ['body.password'],
+          required: false,
+          validation: {
+            type: 'string',
+          },
+        },
+        grant_type: {
+          source: ['body.grant_type'],
+          required: false,
+          default: 'password',
+          validation: {
+            type: 'string',
+            enum: ['refresh_token', 'password'],
+          },
+        },
+        refresh_token: {
+          source: ['body.refresh_token'],
+          required: false,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+      '/pin': {
+        _apiInfo: {
+          l: 'Create an access token with pin',
+          group: 'Tokenization',
+        },
+        pin: {
+          source: ['body.pin'],
+          required: false,
+          validation: {
+            type: 'string',
+          },
+        },
+        grant_type: {
+          source: ['body.grant_type'],
+          required: true,
+          validation: {
+            type: 'string',
+            enum: ['refresh_token', 'password'],
+          },
+        },
+        refresh_token: {
+          source: ['body.refresh_token'],
+          required: false,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+    },
 
-			"/passport/validate/:strategy": {
-				"_apiInfo": {
-					"l": "Passport login validation",
-					"group": "Third party login"
-				},
-				"strategy": {
-					"source": ['params.strategy'],
-					"required": true,
-					"validation": {
-						"type": "string",
-						"enum": ["facebook", "google", "twitter", "github", "azure"]
-					}
-				},
-				"oauth_token": {
-					"source": ['query.oauth_token'],
-					"required": false,
-					"validation": {
-						"type": "string"
-					}
-				},
-				"oauth_verifier": {
-					"source": ['query.oauth_verifier'],
-					"required": false,
-					"validation": {
-						"type": "string"
-					}
-				}
-			}
-
-		},
-
-		"post": {
-			"/openam/login": {
-				"_apiInfo": {
-					"l": "OpenAM login",
-					"group": "Third party login"
-				},
-				"token": {
-					"source": ['body.token'],
-					"required": true,
-					"validation": {
-						"type": "string"
-					}
-				}
-			},
-			"/ldap/login": {
-				"_apiInfo": {
-					"l": "Ldap login",
-					"group": "Third party login"
-				},
-				"username": {
-					"source": ['body.username'],
-					"required": true,
-					"validation": {
-						"type": "string"
-					}
-				},
-				"password": {
-					"source": ['body.password'],
-					"required": true,
-					"validation": {
-						"type": "string"
-					}
-				}
-			},
-
-			"/token": {
-				"_apiInfo": {
-					"l": "Create an access token",
-					"group": "Guest"
-				},
-				"username": {
-					"source": ['body.username'],
-					"required": false,
-					"validation": {
-						"type": "string"
-					}
-				},
-				"password": {
-					"source": ['body.password'],
-					"required": false,
-					"validation": {
-						"type": "string"
-					}
-				},
-				"grant_type": {
-					"source": ['body.grant_type'],
-					"required": false,
-					"default": "password",
-					"validation": {
-						"type": "string",
-						"enum": ["refresh_token", "password"]
-					}
-				},
-				"refresh_token": {
-					"source": ['body.refresh_token'],
-					"required": false,
-					"validation": {
-						"type": "string"
-					}
-				}
-			},
-			"/pin": {
-				"_apiInfo": {
-					"l": "Create an access token with pin",
-					"group": "Tokenization"
-				},
-				"pin": {
-					"source": ['body.pin'],
-					"required": false,
-					"validation": {
-						"type": "string"
-					}
-				},
-				"grant_type": {
-					"source": ['body.grant_type'],
-					"required": true,
-					"validation": {
-						"type": "string",
-						"enum": ["refresh_token", "password"]
-					}
-				},
-				"refresh_token": {
-					"source": ['body.refresh_token'],
-					"required": false,
-					"validation": {
-						"type": "string"
-					}
-				}
-			}
-		},
-
-		"delete": {
-			"/accessToken/:token": {
-				"_apiInfo": {
-					"l": "Delete access token",
-					"group": "Tokenization"
-				},
-				"token": {
-					"source": ['params.token'],
-					"required": true,
-					"validation": {
-						"type": "string"
-					}
-				}
-			},
-			"/refreshToken/:token": {
-				"_apiInfo": {
-					"l": "Delete refresh token",
-					"group": "Tokenization"
-				},
-				"token": {
-					"source": ['params.token'],
-					"required": true,
-					"validation": {
-						"type": "string"
-					}
-				}
-			},
-			"/tokens/user/:userId": {
-				"_apiInfo": {
-					"l": "Delete all tokens for a given user",
-					"group": "User Tokenization"
-				},
-				"userId": {
-					"source": ['params.userId'],
-					"required": true,
-					"validation": {
-						"type": "string"
-					}
-				}
-			},
-			"/tokens/tenant/:clientId": {
-				"_apiInfo": {
-					"l": "Delete all tokens for this client (tenant)",
-					"group": "Cient Tokenization"
-				},
-				"clientId": {
-					"source": ['params.clientId'],
-					"required": true,
-					"validation": {
-						"type": "string"
-					}
-				}
-			}
-		}
-	}
+    delete: {
+      '/accessToken/:token': {
+        _apiInfo: {
+          l: 'Delete access token',
+          group: 'Tokenization',
+        },
+        token: {
+          source: ['params.token'],
+          required: true,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+      '/refreshToken/:token': {
+        _apiInfo: {
+          l: 'Delete refresh token',
+          group: 'Tokenization',
+        },
+        token: {
+          source: ['params.token'],
+          required: true,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+      '/tokens/user/:userId': {
+        _apiInfo: {
+          l: 'Delete all tokens for a given user',
+          group: 'User Tokenization',
+        },
+        userId: {
+          source: ['params.userId'],
+          required: true,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+      '/tokens/tenant/:clientId': {
+        _apiInfo: {
+          l: 'Delete all tokens for this client (tenant)',
+          group: 'Cient Tokenization',
+        },
+        clientId: {
+          source: ['params.clientId'],
+          required: true,
+          validation: {
+            type: 'string',
+          },
+        },
+      },
+    },
+  },
 };

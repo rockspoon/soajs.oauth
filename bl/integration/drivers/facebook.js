@@ -26,9 +26,6 @@ let lib = {
 			},
 			(accessToken, refreshToken, profile, done) => {
 				
-				console.log("------------- FACEBOOK");
-				console.log(profile);
-				
 				let soajsResponse = {
 					"profile": profile,
 					"refreshToken": refreshToken,
@@ -50,6 +47,9 @@ let lib = {
 	},
 	
 	"mapProfile": (soajsResponse, cb) => {
+		if (soajsResponse.profile && soajsResponse.profile._raw) {
+			delete soajsResponse.profile._raw;
+		}
 		let profile = {
 			firstName: soajsResponse.profile._json.first_name,
 			lastName: soajsResponse.profile._json.last_name,

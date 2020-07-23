@@ -14,7 +14,7 @@ let authentication = "google";
 let lib = {
 	"init": (config, cb) => {
 		if (!config || !config.clientID || !config.clientSecret || !config.callbackURL) {
-			return cb(new Error("Github passport configuration is not complete."));
+			return cb(new Error("Google passport configuration is not complete."));
 		}
 		passport.use(new Strategy({
 				"clientID": config.clientID,
@@ -22,9 +22,6 @@ let lib = {
 				"callbackURL": config.callbackURL
 			},
 			(accessToken, refreshToken, profile, done) => {
-				
-				console.log("------------- GOOGLE");
-				console.log(profile);
 				
 				let soajsResponse = {
 					"profile": profile,
@@ -57,7 +54,7 @@ let lib = {
 			email: email,
 			username: soajsResponse.profile.id,
 			id: soajsResponse.profile.id,
-			originalProfile: soajsResponse.profile._json,
+			originalProfile: soajsResponse.profile,
 			accessToken: soajsResponse.accessToken,
 			refreshToken: soajsResponse.refreshToken
 		};

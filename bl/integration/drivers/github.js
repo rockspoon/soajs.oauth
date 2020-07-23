@@ -23,9 +23,6 @@ let lib = {
 			},
 			(accessToken, refreshToken, profile, done) => {
 				
-				console.log("------------- GITHUB");
-				console.log(profile);
-				
 				let soajsResponse = {
 					"profile": profile,
 					"refreshToken": refreshToken,
@@ -53,7 +50,7 @@ let lib = {
 			email: soajsResponse.profile.username + '@github.com',
 			username: soajsResponse.profile.username + '_' + soajsResponse.profile.id,
 			id: soajsResponse.profile.id,
-			originalProfile: {},
+			originalProfile: soajsResponse.profile,
 			accessToken: soajsResponse.accessToken,
 			refreshToken: soajsResponse.refreshToken
 		};
