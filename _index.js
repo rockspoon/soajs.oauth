@@ -8,7 +8,7 @@
  * found in the LICENSE file at the root of this repository
  */
 
-require('newrelic')
+require('newrelic');
 
 const soajs = require('soajs');
 
